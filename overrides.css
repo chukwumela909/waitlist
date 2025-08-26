@@ -32,6 +32,12 @@ input,button,select,textarea{font-family:inherit}
 @keyframes waitPulse{0%{background-position:0 0}100%{background-position:200% 0}}
 #waitlist-success{margin-top:.5rem;font-size:.85rem;color:#16a34a;display:none}
 #waitlist-success.visible{display:block}
+#waitlist-error{margin-top:.5rem;font-size:.85rem;color:#dc2626}
+
+/* Different modal accent when using delay email variant */
+#waitlist-modal[data-variant="delayed"] .th-modal__icon{filter:drop-shadow(0 2px 4px rgba(180,132,38,.4))}
+#waitlist-button.rate-limited{animation:shake .5s ease;}
+@keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
 
 /* Modal styles */
 #waitlist-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;font-family:inherit}

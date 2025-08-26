@@ -33,7 +33,7 @@ if (lightSwitches.length > 0) {
   });
 }
 
-// Waitlist simulated submission
+// Waitlist real submission integration
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('waitlist-form');
   if (!form) return;
@@ -41,40 +41,87 @@ document.addEventListener('DOMContentLoaded', () => {
   const button = form.querySelector('#waitlist-button');
   const buttonText = button?.querySelector('.btn-text');
   const successEl = form.querySelector('#waitlist-success');
+  const errorEl = form.querySelector('#waitlist-error');
   let loading = false;
+  const API_BASE = 'https://waitlist-api-qiep.onrender.com';
 
-  const resetState = () => {
-    loading = false;
-    if (button) {
-      button.disabled = false;
-      button.classList.remove('is-loading');
-      if (buttonText) buttonText.textContent = 'Join The Waitlist';
-    }
+  const setLoading = (state) => {
+    loading = state;
+    if (!button) return;
+    button.disabled = state;
+    button.classList.toggle('is-loading', state);
+    if (buttonText) buttonText.textContent = state ? 'Joining...' : 'Join The Waitlist';
+  };
+  const clearMessages = () => {
+    if (successEl) { successEl.textContent = ''; successEl.classList.remove('visible'); }
+    if (errorEl) { errorEl.textContent = ''; errorEl.hidden = true; }
   };
 
-  form.addEventListener('submit', (e) => {
+  async function joinWaitlist(email) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    try {
+      const res = await fetch(`${API_BASE}/api/waitlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+        signal: controller.signal,
+      });
+      let data = {};
+      try { data = await res.json(); } catch (_) { /* ignore parse */ }
+      if (res.ok && data.success) {
+        return { ok: true, message: data.message || 'Successfully joined.' };
+      }
+      // Handle known error shapes including rate limit
+      const msg = data.error || data.message || 'Something went wrong. Please try again later.';
+      return { ok: false, status: res.status, message: msg };
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        return { ok: false, status: 0, message: 'Request timed out. Check your connection and try again.' };
+      }
+      return { ok: false, status: 0, message: 'Network error. Please check connection.' };
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (loading) return;
-    if (!emailInput.value.trim()) {
+    clearMessages();
+    const email = emailInput.value.trim();
+    if (!email) { emailInput.focus(); return; }
+    // Basic email format check before hitting API
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      if (errorEl) { errorEl.textContent = 'Enter a valid email address.'; errorEl.hidden = false; }
       emailInput.focus();
       return;
     }
-    loading = true;
-    if (successEl) {
-      successEl.textContent = '';
-      successEl.classList.remove('visible');
-    }
-    if (button) {
-      button.disabled = true;
-      button.classList.add('is-loading');
-      if (buttonText) buttonText.textContent = 'Joining...';
-    }
-    setTimeout(() => {
-      // Simulated success -> open modal
-      openWaitlistModal();
-      resetState();
+    setLoading(true);
+    const result = await joinWaitlist(email);
+    setLoading(false);
+    if (result.ok) {
+      if (successEl) { successEl.textContent = result.message; successEl.classList.add('visible'); }
+      // Prepare modal variant
+      const modal = document.getElementById('waitlist-modal');
+      if (modal) {
+        const body = modal.querySelector('#waitlist-modal-body');
+        modal.removeAttribute('data-variant');
+        if (/delayed/i.test(result.message) && !/check your email/i.test(result.message)) {
+          modal.setAttribute('data-variant', 'delayed');
+        }
+        if (body) body.textContent = result.message;
+        openWaitlistModal();
+      }
       form.reset();
-    }, 2000);
+    } else {
+      if (errorEl) { errorEl.textContent = result.message; errorEl.hidden = false; }
+      if (result.status === 429) {
+        // Optional: simple backoff visual cue
+        button?.classList.add('rate-limited');
+        setTimeout(() => button?.classList.remove('rate-limited'), 5000);
+      }
+    }
   });
 });
 
