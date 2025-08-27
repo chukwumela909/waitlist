@@ -58,7 +58,7 @@
           '<td>'+ escapeHtml(item.email) +'</td>'+
           '<td><span class="'+statusClass+'">'+ (item.confirmed? 'Confirmed':'Unconfirmed') +'</span></td>'+
           '<td class="mono">'+ formatDate(item.createdAt || item.created_at) +'</td>'+
-          '<td class="mono muted">'+ (item.id || '—') +'</td>'+
+        //   '<td class="mono muted">'+ (item.id || '—') +'</td>'+
         '</tr>');
       }
     }
