@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const successEl = form.querySelector('#waitlist-success');
   const errorEl = form.querySelector('#waitlist-error');
   let loading = false;
-  const API_BASE = 'https://waitlist-api-qiep.onrender.com';
+  // Prefer global override (set in page) else fallback
+  const API_BASE = window.WAITLIST_API_BASE || 'https://waitlist-api-qiep.onrender.com';
 
   const setLoading = (state) => {
     loading = state;

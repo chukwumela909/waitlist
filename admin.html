@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TaskHub Waitlist Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="style.css" rel="stylesheet" />
+  <link href="overrides.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+  <script>
+    if (localStorage.getItem('dark-mode') === 'true') { document.documentElement.classList.add('dark'); }
+  </script>
+  <style>
+    .admin-wrap{max-width:1280px;margin:0 auto;padding:2rem 1.25rem;}
+    .admin-head{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-bottom:1.5rem}
+    .admin-head h1{font-size:1.55rem;margin:0;font-weight:600}
+    .admin-actions{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+    .admin-actions button,.admin-actions input{font:inherit}
+    .th-btn{background:#2563eb;color:#fff;border:none;padding:.6rem 1rem;border-radius:.55rem;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem}
+    .th-btn:hover{background:#1d4ed8}
+    .th-btn:disabled{opacity:.55;cursor:not-allowed}
+    .stats-cards{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+    .stats-card{background:rgba(255,255,255,.55);backdrop-filter:blur(6px);padding:.9rem 1rem;border-radius:.9rem;min-width:140px;box-shadow:0 2px 6px rgba(0,0,0,.08);position:relative}
+    .dark .stats-card{background:rgba(31,41,55,.65)}
+    .stats-card h3{margin:0 0 .35rem;font-size:.75rem;letter-spacing:.5px;text-transform:uppercase;font-weight:600;opacity:.75}
+    .stats-card .value{font-size:1.35rem;font-weight:600;line-height:1}
+    .table-scroller{overflow:auto;border:1px solid rgba(0,0,0,.08);border-radius:1rem;background:rgba(255,255,255,.5);backdrop-filter:blur(4px)}
+    .dark .table-scroller{background:rgba(31,41,55,.5);border-color:rgba(255,255,255,.08)}
+    table.waitlist{width:100%;border-collapse:collapse;min-width:640px;font-size:.85rem}
+    table.waitlist thead th{position:sticky;top:0;background:rgba(248,250,252,.85);backdrop-filter:blur(4px);text-align:left;padding:.65rem .75rem;font-weight:600;font-size:.7rem;letter-spacing:.5px;text-transform:uppercase}
+    .dark table.waitlist thead th{background:rgba(31,41,55,.9)}
+    table.waitlist tbody td{padding:.55rem .75rem;border-top:1px solid rgba(0,0,0,.06);vertical-align:middle;line-height:1.25}
+    .dark table.waitlist tbody td{border-color:rgba(255,255,255,.08)}
+    .status-pill{display:inline-flex;align-items:center;gap:.35rem;border-radius:999px;padding:.25rem .6rem;font-size:.65rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+    .status-confirmed{background:#dcfce7;color:#15803d}
+    .status-unconfirmed{background:#fef9c3;color:#92400e}
+    .dark .status-confirmed{background:rgba(22,163,74,.15);color:#4ade80}
+    .dark .status-unconfirmed{background:rgba(202,138,4,.2);color:#fbbf24}
+    .muted{opacity:.55}
+    .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75rem}
+    .filter-box{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.6);padding:.4rem .6rem;border-radius:.6rem;border:1px solid rgba(0,0,0,.08)}
+    .dark .filter-box{background:rgba(31,41,55,.6);border-color:rgba(255,255,255,.1)}
+    .filter-box input{background:transparent;border:none;outline:none;min-width:200px}
+    .empty{padding:2.5rem 1rem;text-align:center;font-size:.9rem;opacity:.7}
+    .error-msg{color:#dc2626;font-size:.8rem;margin:.5rem 0 0}
+    .loading-row td{padding:2rem 1rem;text-align:center}
+    .badge{display:inline-block;background:#1e3a8a;color:#fff;font-size:.65rem;padding:.25rem .5rem;border-radius:.5rem;margin-left:.4rem}
+  </style>
+</head>
+<body class="cj90m c7e3b cisrt c7wkd c2gcs ce7fn clmvh">
+  <header class="c9v3y crbyi c7hiy cvq6c cd5ux cr8aa cligc ctdcn coe0p crj7h c2dja casec">
+    <div class="cy6zq crh5c">
+      <div class="cpthp czrhe">
+        <div class="cvvig cba0k c04cg c45gv c5plh chwso cfctz ccjiw ckwv3 ckqfb cf0cr cezsk c2svq c02c5">
+          <div class="ctuhr">
+            <a href="index.html" class="site-logo" aria-label="TaskHub home">
+              <img src="images/taskhub.png" alt="TaskHub" class="logo-img logo-light" width="120" height="32" loading="lazy">
+              <img src="images/taskhub-dark.png" alt="TaskHub" class="logo-img logo-dark" width="120" height="32" loading="lazy">
+            </a>
+          </div>
+          <nav class="c3927 cezsk">
+            <ul class="chwso cxpc2 cmj1h cc7et cezsk">
+              <li><a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" href="index.html">Home</a></li>
+              <li><a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" href="faq.html">FAQ</a></li>
+              <li><a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" href="contact.html">Contact</a></li>
+              <li><span class="cpvyo cv7b2 cj90m cgrfs c2gcs ccjiw cjnro c02c5">Admin</span></li>
+            </ul>
+          </nav>
+          <div class="chso3 ctuhr cezsk">
+            <input type="checkbox" name="light-switch" id="light-switch" class="light-switch cz99u">
+            <label class="c9yqy co456" for="light-switch"><span class="cz99u">Theme</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-wrap">
+    <div class="admin-head">
+      <h1>Waitlist Admin <span class="badge">Beta</span></h1>
+      <div class="admin-actions">
+        <div class="filter-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85Zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/></svg>
+          <input type="text" id="filter" placeholder="Filter email..." aria-label="Filter email" />
+        </div>
+        <button id="refresh" class="th-btn" type="button">Refresh</button>
+        <button id="autoToggle" class="th-btn" type="button" data-enabled="true">Auto: On</button>
+      </div>
+    </div>
+
+    <section class="stats-cards" aria-label="Summary stats">
+      <div class="stats-card"><h3>Total</h3><div class="value" id="stat-total">—</div></div>
+      <div class="stats-card"><h3>Confirmed</h3><div class="value" id="stat-confirmed">—</div></div>
+      <div class="stats-card"><h3>Unconfirmed</h3><div class="value" id="stat-unconfirmed">—</div></div>
+      <div class="stats-card"><h3>Last Update</h3><div class="value" id="stat-updated" style="font-size:.8rem;font-weight:500">—</div></div>
+    </section>
+
+    <div class="table-scroller" aria-live="polite" aria-busy="false">
+      <table class="waitlist" id="waitlist-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th class="mono">ID</th>
+          </tr>
+        </thead>
+        <tbody id="waitlist-body">
+          <tr class="loading-row"><td colspan="4">Loading entries…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="entries-error" class="error-msg" hidden></p>
+    <!-- <p class="muted" style="margin-top:1rem;font-size:.7rem">Note: Listing endpoint assumed. Adjust admin.js if backend exposes a different path.</p> -->
+  </main>
+
+  <footer class="c9v3y crbyi c7hiy cvq6c c07f0" style="margin-top:3rem">
+    <div class="cy6zq crh5c"><div class="cpthp czrhe"><div class="c9pd1 c82jv"><p class="cauea cgrfs cc7et">© 2025 TaskHub — Internal admin view.</p></div></div></div>
+  </footer>
+
+  <script>window.WAITLIST_API_BASE = 'https://waitlist-api-qiep.onrender.com';</script>
+  <script src="js/vendors/alpinejs.min.js" defer></script>
+  <script src="js/main.js"></script>
+  <script src="js/admin.js" defer></script>
+</body>
+</html>
