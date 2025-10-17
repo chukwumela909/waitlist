@@ -39,6 +39,23 @@ input,button,select,textarea{font-family:inherit}
 #waitlist-button.rate-limited{animation:shake .5s ease;}
 @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
 
+/* Role selector */
+.role-selector{margin:1rem 0}
+.role-label{display:block;margin-bottom:.75rem;font-size:.9rem}
+.role-options{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.role-option{position:relative;cursor:pointer;display:block}
+.role-option input[type="radio"]{position:absolute;opacity:0;width:0;height:0}
+.role-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:1rem .75rem;border:2px solid rgba(0,0,0,.1);border-radius:.8rem;background:rgba(255,255,255,.6);backdrop-filter:blur(4px);transition:all .25s ease}
+.dark .role-card{background:rgba(31,41,55,.5);border-color:rgba(255,255,255,.1)}
+.role-icon{font-size:1.75rem;margin-bottom:.35rem;display:block}
+.role-title{font-weight:600;font-size:.85rem;display:block;margin-bottom:.15rem}
+.role-desc{font-size:.7rem;opacity:.7;display:block;line-height:1.2}
+.role-option input:checked + .role-card{border-color:#2563eb;background:rgba(37,99,235,.08);box-shadow:0 4px 12px -2px rgba(37,99,235,.3)}
+.dark .role-option input:checked + .role-card{border-color:#3b82f6;background:rgba(59,130,246,.15)}
+.role-option:hover .role-card{transform:translateY(-2px);box-shadow:0 6px 16px -4px rgba(0,0,0,.15)}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@media (max-width:520px){.role-options{grid-template-columns:1fr;gap:.5rem}}
+
 /* Modal styles */
 #waitlist-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;font-family:inherit}
 #waitlist-modal[hidden]{display:none}

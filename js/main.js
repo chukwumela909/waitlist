@@ -38,11 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('waitlist-form');
   if (!form) return;
   const emailInput = form.querySelector('#email');
+  const roleField = form.querySelector('#role-field');
   const button = form.querySelector('#waitlist-button');
   const buttonText = button?.querySelector('.btn-text');
   const successEl = form.querySelector('#waitlist-success');
   const errorEl = form.querySelector('#waitlist-error');
   let loading = false;
+  let emailValidated = false;
   // Prefer global override (set in page) else fallback
   const API_BASE = window.WAITLIST_API_BASE || 'https://waitlist-api-qiep.onrender.com';
 
@@ -58,14 +60,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (errorEl) { errorEl.textContent = ''; errorEl.hidden = true; }
   };
 
-  async function joinWaitlist(email) {
+  // Show role field after email is entered
+  emailInput.addEventListener('blur', () => {
+    const email = emailInput.value.trim();
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !emailValidated) {
+      emailValidated = true;
+      if (roleField) {
+        roleField.hidden = false;
+        roleField.style.animation = 'slideIn 0.3s ease';
+      }
+    }
+  });
+
+  async function joinWaitlist(email, role) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
     try {
       const res = await fetch(`${API_BASE}/api/waitlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, role }),
         signal: controller.signal,
       });
       let data = {};
@@ -98,8 +112,17 @@ document.addEventListener('DOMContentLoaded', () => {
       emailInput.focus();
       return;
     }
+    
+    // Check role selection
+    const roleInput = form.querySelector('input[name="role"]:checked');
+    if (!roleInput) {
+      if (errorEl) { errorEl.textContent = 'Please select whether you want to post tasks or earn as a Tasker.'; errorEl.hidden = false; }
+      if (roleField) roleField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     setLoading(true);
-    const result = await joinWaitlist(email);
+    const result = await joinWaitlist(email, roleInput.value);
     setLoading(false);
     if (result.ok) {
       if (successEl) { successEl.textContent = result.message; successEl.classList.add('visible'); }
@@ -115,6 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
         openWaitlistModal();
       }
       form.reset();
+      emailValidated = false;
+      if (roleField) roleField.hidden = true;
     } else {
       if (errorEl) { errorEl.textContent = result.message; errorEl.hidden = false; }
       if (result.status === 429) {
