@@ -37,58 +37,79 @@ if (lightSwitches.length > 0) {
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('waitlist-form');
   if (!form) return;
+  
+  // Form fields
+  const fullNameInput = form.querySelector('#fullName');
   const emailInput = form.querySelector('#email');
-  const roleField = form.querySelector('#role-field');
+  const phoneInput = form.querySelector('#phoneNumber');
+  const primarySkillSelect = form.querySelector('#primarySkill');
+  const otherServiceInput = form.querySelector('#otherService');
+  const otherServiceWrap = form.querySelector('#otherServiceWrap');
+  const cityInput = form.querySelector('#city');
+  const stateSelect = form.querySelector('#state');
+  const experienceSelect = form.querySelector('#yearsOfExperience');
+  const portfolioInput = form.querySelector('#portfolioLink');
+  const notifyCheckbox = form.querySelector('#notifyEarlyAccess');
+  const termsCheckbox = form.querySelector('#agreedToTerms');
+  
   const button = form.querySelector('#waitlist-button');
   const buttonText = button?.querySelector('.btn-text');
-  const successEl = form.querySelector('#waitlist-success');
   const errorEl = form.querySelector('#waitlist-error');
   let loading = false;
-  let emailValidated = false;
+  
   // Prefer global override (set in page) else fallback
   const API_BASE = window.WAITLIST_API_BASE || 'https://waitlist-api-qiep.onrender.com';
+
+  // Show/hide otherService field based on primarySkill selection
+  if (primarySkillSelect && otherServiceWrap) {
+    primarySkillSelect.addEventListener('change', () => {
+      if (primarySkillSelect.value === 'Other') {
+        otherServiceWrap.style.display = 'block';
+        if (otherServiceInput) otherServiceInput.required = true;
+      } else {
+        otherServiceWrap.style.display = 'none';
+        if (otherServiceInput) {
+          otherServiceInput.required = false;
+          otherServiceInput.value = '';
+        }
+      }
+    });
+  }
 
   const setLoading = (state) => {
     loading = state;
     if (!button) return;
     button.disabled = state;
     button.classList.toggle('is-loading', state);
-    if (buttonText) buttonText.textContent = state ? 'Joining...' : 'Join The Waitlist';
+    if (buttonText) buttonText.textContent = state ? 'Joining...' : 'Join the Waitlist';
   };
+  
   const clearMessages = () => {
-    if (successEl) { successEl.textContent = ''; successEl.classList.remove('visible'); }
     if (errorEl) { errorEl.textContent = ''; errorEl.hidden = true; }
   };
 
-  // Show role field after email is entered
-  emailInput.addEventListener('blur', () => {
-    const email = emailInput.value.trim();
-    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !emailValidated) {
-      emailValidated = true;
-      if (roleField) {
-        roleField.hidden = false;
-        roleField.style.animation = 'slideIn 0.3s ease';
-      }
-    }
-  });
-
-  async function joinWaitlist(email, role) {
+  async function joinWaitlist(data) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout for larger payload
     try {
       const res = await fetch(`${API_BASE}/api/waitlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role }),
+        body: JSON.stringify(data),
         signal: controller.signal,
       });
-      let data = {};
-      try { data = await res.json(); } catch (_) { /* ignore parse */ }
-      if (res.ok && data.success) {
-        return { ok: true, message: data.message || 'Successfully joined.' };
+      let responseData = {};
+      try { responseData = await res.json(); } catch (_) { /* ignore parse */ }
+      if (res.ok && responseData.success) {
+        return { ok: true, message: responseData.message || 'Successfully joined the waitlist!' };
+      }
+      // Handle validation errors with details
+      if (responseData.details && Array.isArray(responseData.details)) {
+        const errors = responseData.details.map(d => d.message).join(', ');
+        return { ok: false, status: res.status, message: errors };
       }
       // Handle known error shapes including rate limit
-      const msg = data.error || data.message || 'Something went wrong. Please try again later.';
+      const msg = responseData.error || responseData.message || 'Something went wrong. Please try again later.';
       return { ok: false, status: res.status, message: msg };
     } catch (err) {
       if (err.name === 'AbortError') {
@@ -104,29 +125,58 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     if (loading) return;
     clearMessages();
-    const email = emailInput.value.trim();
-    if (!email) { emailInput.focus(); return; }
-    // Basic email format check before hitting API
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      if (errorEl) { errorEl.textContent = 'Enter a valid email address.'; errorEl.hidden = false; }
-      emailInput.focus();
+    
+    // Client-side validation (HTML5 handles required, but add extra checks)
+    const fullName = fullNameInput?.value.trim() || '';
+    const email = emailInput?.value.trim() || '';
+    const phone = phoneInput?.value.trim() || '';
+    const primarySkill = primarySkillSelect?.value || '';
+    const otherService = otherServiceInput?.value.trim() || '';
+    const city = cityInput?.value.trim() || '';
+    const state = stateSelect?.value || '';
+    const experience = experienceSelect?.value || '';
+    const portfolio = portfolioInput?.value.trim() || '';
+    const notifyEarly = notifyCheckbox?.checked ?? true;
+    const agreedTerms = termsCheckbox?.checked ?? false;
+
+    // Extra validation
+    if (!agreedTerms) {
+      if (errorEl) { errorEl.textContent = 'You must agree to the Terms & Privacy Policy.'; errorEl.hidden = false; }
+      termsCheckbox?.focus();
       return;
     }
-    
-    // Check role selection
-    const roleInput = form.querySelector('input[name="role"]:checked');
-    if (!roleInput) {
-      if (errorEl) { errorEl.textContent = 'Please select whether you want to post tasks or earn as a Tasker.'; errorEl.hidden = false; }
-      if (roleField) roleField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (primarySkill === 'Other' && !otherService) {
+      if (errorEl) { errorEl.textContent = 'Please specify your service when selecting "Other".'; errorEl.hidden = false; }
+      otherServiceInput?.focus();
       return;
     }
 
+    // Build payload matching API spec
+    const payload = {
+      fullName,
+      email,
+      phoneNumber: phone,
+      primarySkill,
+      city,
+      state,
+      yearsOfExperience: experience,
+      notifyEarlyAccess: notifyEarly,
+      agreedToTerms: agreedTerms
+    };
+    
+    if (primarySkill === 'Other' && otherService) {
+      payload.otherService = otherService;
+    }
+    if (portfolio) {
+      payload.portfolioLink = portfolio;
+    }
+
     setLoading(true);
-    const result = await joinWaitlist(email, roleInput.value);
+    const result = await joinWaitlist(payload);
     setLoading(false);
+    
     if (result.ok) {
-      if (successEl) { successEl.textContent = result.message; successEl.classList.add('visible'); }
-      // Prepare modal variant
+      // Show success modal
       const modal = document.getElementById('waitlist-modal');
       if (modal) {
         const body = modal.querySelector('#waitlist-modal-body');
@@ -138,8 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
         openWaitlistModal();
       }
       form.reset();
-      emailValidated = false;
-      if (roleField) roleField.hidden = true;
+      // Re-hide otherService field after reset
+      if (otherServiceWrap) otherServiceWrap.style.display = 'none';
     } else {
       if (errorEl) { errorEl.textContent = result.message; errorEl.hidden = false; }
       if (result.status === 429) {
@@ -147,6 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
         button?.classList.add('rate-limited');
         setTimeout(() => button?.classList.remove('rate-limited'), 5000);
       }
+      // Scroll error into view
+      errorEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   });
 });

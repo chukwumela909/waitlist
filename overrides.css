@@ -39,23 +39,6 @@ input,button,select,textarea{font-family:inherit}
 #waitlist-button.rate-limited{animation:shake .5s ease;}
 @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
 
-/* Role selector */
-.role-selector{margin:1rem 0}
-.role-label{display:block;margin-bottom:.75rem;font-size:.9rem}
-.role-options{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
-.role-option{position:relative;cursor:pointer;display:block}
-.role-option input[type="radio"]{position:absolute;opacity:0;width:0;height:0}
-.role-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:1rem .75rem;border:2px solid rgba(0,0,0,.1);border-radius:.8rem;background:rgba(255,255,255,.6);backdrop-filter:blur(4px);transition:all .25s ease}
-.dark .role-card{background:rgba(31,41,55,.5);border-color:rgba(255,255,255,.1)}
-.role-icon{font-size:1.75rem;margin-bottom:.35rem;display:block}
-.role-title{font-weight:600;font-size:.85rem;display:block;margin-bottom:.15rem}
-.role-desc{font-size:.7rem;opacity:.7;display:block;line-height:1.2}
-.role-option input:checked + .role-card{border-color:#2563eb;background:rgba(37,99,235,.08);box-shadow:0 4px 12px -2px rgba(37,99,235,.3)}
-.dark .role-option input:checked + .role-card{border-color:#3b82f6;background:rgba(59,130,246,.15)}
-.role-option:hover .role-card{transform:translateY(-2px);box-shadow:0 6px 16px -4px rgba(0,0,0,.15)}
-@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-@media (max-width:520px){.role-options{grid-template-columns:1fr;gap:.5rem}}
-
 /* Modal styles */
 #waitlist-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;font-family:inherit}
 #waitlist-modal[hidden]{display:none}
@@ -73,3 +56,107 @@ input,button,select,textarea{font-family:inherit}
 #waitlist-modal .th-modal__dialog:focus{outline:2px solid #2563eb;outline-offset:2px}
 @media (max-width:520px){#waitlist-modal .th-modal__dialog{margin:0 1rem;padding:2rem 1.35rem}}
 
+/* Extended form fields styling */
+#waitlist-form label:not(.cz99u){font-size:.9rem;font-weight:500;display:block;margin-bottom:.35rem}
+#waitlist-form select,#waitlist-form input[type="text"],#waitlist-form input[type="email"],#waitlist-form input[type="tel"],#waitlist-form input[type="url"]{width:100%}
+#waitlist-form input[type="checkbox"]{width:auto;margin:0;cursor:pointer;accent-color:#2563eb}
+#waitlist-form .cacgm{gap:1.25rem!important}
+
+/* Checkbox labels proper styling */
+#waitlist-form label[style*="cursor:pointer"]{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:.5rem!important;
+  font-size:.85rem!important;
+  cursor:pointer!important;
+  line-height:1.4
+}
+#waitlist-form label[style*="cursor:pointer"] input[type="checkbox"]{
+  margin-top:.15rem;
+  flex-shrink:0;
+  width:16px;
+  height:16px
+}
+
+/* Select dropdown styling */
+#waitlist-form select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right .75rem center;
+  background-size:12px;
+  padding-right:2.5rem
+}
+.dark #waitlist-form select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaa' d='M6 9L1 4h10z'/%3E%3C/svg%3E")
+}
+
+/* Benefit/step cards responsive */
+@media(max-width:768px){
+  #waitlist-form .cacgm{gap:1rem!important}
+}
+
+/* Form width on desktop - increase max-width for join page */
+.join-form-container{max-width:800px!important;margin:0 auto}
+@media(min-width:1024px){
+  .join-form-container{max-width:50vw!important;min-width:700px!important}
+}
+@media(min-width:1400px){
+  .join-form-container{max-width:50vw!important;min-width:800px!important}
+}
+
+/* Join Waitlist button responsive styling */
+.join-cta-btn{
+  display:inline-block;
+  font-size:1rem;
+  padding:.85rem 2rem;
+  text-align:center;
+  transition:transform .2s,box-shadow .2s;
+  max-width:280px
+}
+.join-cta-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px -4px rgba(37,99,235,.4)
+}
+.join-cta-btn:active{
+  transform:translateY(0)
+}
+
+/* Mobile responsiveness for join buttons */
+@media(max-width:640px){
+  .join-cta-btn{
+    font-size:.95rem;
+    padding:.85rem 1.75rem;
+    width:100%;
+    max-width:320px
+  }
+}
+@media(max-width:480px){
+  .join-cta-btn{
+    font-size:.9rem;
+    padding:.8rem 1.5rem;
+    width:100%
+  }
+}
+
+/* Nav join button specific styling */
+nav .join-nav-btn{
+  padding:.5rem 1.25rem;
+  font-size:.9rem;
+  white-space:nowrap
+}
+@media(max-width:768px){
+  nav .join-nav-btn{
+    padding:.45rem 1rem;
+    font-size:.85rem
+  }
+}
+@media(max-width:480px){
+  nav .join-nav-btn{
+    padding:.4rem .8rem;
+    font-size:.8rem
+  }
+}
