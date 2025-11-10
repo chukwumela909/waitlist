@@ -35,8 +35,14 @@ if (lightSwitches.length > 0) {
 
 // Waitlist real submission integration
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 Waitlist form script loaded');
+  
   const form = document.getElementById('waitlist-form');
-  if (!form) return;
+  if (!form) {
+    console.error('❌ Form not found!');
+    return;
+  }
+  console.log('✅ Form found:', form);
   
   // Form fields
   const fullNameInput = form.querySelector('#fullName');
@@ -52,13 +58,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const notifyCheckbox = form.querySelector('#notifyEarlyAccess');
   const termsCheckbox = form.querySelector('#agreedToTerms');
   
+  console.log('📝 Form fields found:', {
+    fullNameInput: !!fullNameInput,
+    emailInput: !!emailInput,
+    phoneInput: !!phoneInput,
+    primarySkillSelect: !!primarySkillSelect,
+    cityInput: !!cityInput,
+    stateSelect: !!stateSelect,
+    experienceSelect: !!experienceSelect,
+    portfolioInput: !!portfolioInput,
+    notifyCheckbox: !!notifyCheckbox,
+    termsCheckbox: !!termsCheckbox
+  });
+  
   const button = form.querySelector('#waitlist-button');
   const buttonText = button?.querySelector('.btn-text');
   const errorEl = form.querySelector('#waitlist-error');
   let loading = false;
   
   // Prefer global override (set in page) else fallback
-  const API_BASE = window.WAITLIST_API_BASE || 'https://waitlist-api-qiep.onrender.com';
+  // Use localhost for development, Render for production;
+  const API_BASE = 'https://waitlist-api-qiep.onrender.com';
 
   // Show/hide otherService field based on primarySkill selection
   if (primarySkillSelect && otherServiceWrap) {
@@ -90,31 +110,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function joinWaitlist(data) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout for larger payload
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout (increased for email sending)
     try {
+      // Log payload for debugging
+      console.log('📤 Sending payload:', data);
+      
       const res = await fetch(`${API_BASE}/api/waitlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
         signal: controller.signal,
       });
+      
       let responseData = {};
-      try { responseData = await res.json(); } catch (_) { /* ignore parse */ }
+      try { 
+        responseData = await res.json(); 
+      } catch (parseError) { 
+        console.error('JSON parse error:', parseError);
+      }
+      
+      // Log full response for debugging
+      console.log('API Response:', {
+        status: res.status,
+        statusText: res.statusText,
+        data: responseData
+      });
+      
+      // Success case - API returns { success: true, message: "..." }
       if (res.ok && responseData.success) {
+        console.log('✅ Success:', responseData.message);
         return { ok: true, message: responseData.message || 'Successfully joined the waitlist!' };
       }
-      // Handle validation errors with details
+      
+      // Validation errors - API returns { success: false, error: "...", details: [...] }
       if (responseData.details && Array.isArray(responseData.details)) {
-        const errors = responseData.details.map(d => d.message).join(', ');
+        const errors = responseData.details.map(d => `${d.field}: ${d.message}`).join(', ');
+        console.error('❌ Validation errors:', responseData.details);
         return { ok: false, status: res.status, message: errors };
       }
-      // Handle known error shapes including rate limit
-      const msg = responseData.error || responseData.message || 'Something went wrong. Please try again later.';
-      return { ok: false, status: res.status, message: msg };
+      
+      // Duplicate email - API returns { success: false, error: "This email is already on our waitlist" }
+      if (res.status === 409) {
+        console.warn('⚠️ Duplicate entry:', responseData.error);
+        return { ok: false, status: 409, message: responseData.error || 'This email is already registered.' };
+      }
+      
+      // Rate limit - typically 429 status
+      if (res.status === 429) {
+        console.warn('⚠️ Rate limit exceeded');
+        return { ok: false, status: 429, message: 'Too many requests. Please try again later.' };
+      }
+      
+      // General error - API returns { success: false, error: "..." }
+      const errorMsg = responseData.error || responseData.message || 'Something went wrong. Please try again later.';
+      console.error('❌ API Error:', {
+        status: res.status,
+        error: errorMsg,
+        fullResponse: responseData
+      });
+      
+      return { ok: false, status: res.status, message: errorMsg };
+      
     } catch (err) {
       if (err.name === 'AbortError') {
+        console.error('⏱️ Request timeout');
         return { ok: false, status: 0, message: 'Request timed out. Check your connection and try again.' };
       }
+      console.error('🌐 Network error:', err);
       return { ok: false, status: 0, message: 'Network error. Please check connection.' };
     } finally {
       clearTimeout(timeout);
@@ -139,7 +201,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const notifyEarly = notifyCheckbox?.checked ?? true;
     const agreedTerms = termsCheckbox?.checked ?? false;
 
+    // Debug: Log collected form values
+    console.log('📋 Form values:', {
+      fullName,
+      email,
+      phone,
+      primarySkill,
+      city,
+      state,
+      experience,
+      portfolio,
+      notifyEarly,
+      agreedTerms
+    });
+
     // Extra validation
+    if (!email) {
+      if (errorEl) { errorEl.textContent = 'Email is required'; errorEl.hidden = false; }
+      emailInput?.focus();
+      return;
+    }
     if (!agreedTerms) {
       if (errorEl) { errorEl.textContent = 'You must agree to the Terms & Privacy Policy.'; errorEl.hidden = false; }
       termsCheckbox?.focus();
