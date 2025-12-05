@@ -3,7 +3,7 @@
 // If list endpoint differs, adjust LIST_PATH below.
 
 (function(){
-  const API_BASE = 'https://waitlist-api-qiep.onrender.com';
+  const API_BASE = window.WAITLIST_API_BASE || 'https://waitlist-api-qiep.onrender.com';
   const STATS_PATH = '/api/waitlist/stats'; // returns { success, stats: { total, confirmed, unconfirmed, users: [...] } }
 
   const tbody = document.getElementById('waitlist-body');
