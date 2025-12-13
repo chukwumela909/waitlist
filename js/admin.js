@@ -50,10 +50,9 @@
     const rows = [];
     const list = term ? cache.filter(r => r.email.toLowerCase().includes(term) || r.fullName.toLowerCase().includes(term)) : cache;
     if(list.length === 0){
-      rows.push('<tr><td colspan="9" class="empty">'+ (term? 'No matches found.' : 'No entries yet.') +'</td></tr>');
+      rows.push('<tr><td colspan="8" class="empty">'+ (term? 'No matches found.' : 'No entries yet.') +'</td></tr>');
     } else {
       for(const item of list){
-        const statusClass = item.confirmed ? 'status-pill status-confirmed' : 'status-pill status-unconfirmed';
         const location = [item.city, item.state].filter(Boolean).join(', ') || '—';
         const skill = (item.primarySkill === 'Other' || item.primarySkill === 'other') && item.otherService ? item.otherService : (item.primarySkill || '—');
         const portfolio = item.portfolioLink ? `<a href="${escapeHtml(item.portfolioLink)}" target="_blank" rel="noopener">Link</a>` : '—';
@@ -66,7 +65,6 @@
           '<td>'+ escapeHtml(location) +'</td>'+
           '<td>'+ escapeHtml(item.yearsOfExperience || '—') +'</td>'+
           '<td>'+ portfolio +'</td>'+
-          '<td><span class="'+statusClass+'">'+ (item.confirmed? 'Confirmed':'Unconfirmed') +'</span></td>'+
           '<td class="mono">'+ formatDate(item.createdAt) +'</td>'+
         '</tr>');
       }
@@ -106,7 +104,7 @@
       })) : [];
       renderTable();
     } catch(err){
-      if(!silent){ tbody.innerHTML = '<tr><td colspan="9" class="empty">Failed to load entries.</td></tr>'; }
+      if(!silent){ tbody.innerHTML = '<tr><td colspan="8" class="empty">Failed to load entries.</td></tr>'; }
       errorMsg.textContent = err.message || 'Failed to load data';
       errorMsg.hidden = false;
       statUpdated.textContent = 'Err';
