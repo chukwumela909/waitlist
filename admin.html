@@ -103,14 +103,19 @@
       <table class="waitlist" id="waitlist-table">
         <thead>
           <tr>
+            <th>Name</th>
             <th>Email</th>
+            <th>Phone</th>
+            <th>Skill</th>
+            <th>Location</th>
+            <th>Exp</th>
+            <th>Portfolio</th>
             <th>Status</th>
             <th>Joined</th>
-            <!-- <th class="mono">ID</th> -->
           </tr>
         </thead>
         <tbody id="waitlist-body">
-          <tr class="loading-row"><td colspan="4">Loading entries…</td></tr>
+          <tr class="loading-row"><td colspan="9">Loading entries…</td></tr>
         </tbody>
       </table>
     </div>
@@ -123,6 +128,7 @@
   </footer>
 
   <script>window.WAITLIST_API_BASE = 'https://waitlist-api-qiep.onrender.com';</script>
+  <!-- <script>window.WAITLIST_API_BASE = 'http://localhost:8000';</script> -->
   <script src="js/vendors/alpinejs.min.js" defer></script>
   <script src="js/main.js"></script>
   <script src="js/admin.js" defer></script>

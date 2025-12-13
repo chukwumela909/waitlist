@@ -48,17 +48,26 @@
   function renderTable(){
     const term = filterInput.value.trim().toLowerCase();
     const rows = [];
-    const list = term ? cache.filter(r => r.email.toLowerCase().includes(term)) : cache;
+    const list = term ? cache.filter(r => r.email.toLowerCase().includes(term) || r.fullName.toLowerCase().includes(term)) : cache;
     if(list.length === 0){
-      rows.push('<tr><td colspan="4" class="empty">'+ (term? 'No matches found.' : 'No entries yet.') +'</td></tr>');
+      rows.push('<tr><td colspan="9" class="empty">'+ (term? 'No matches found.' : 'No entries yet.') +'</td></tr>');
     } else {
       for(const item of list){
         const statusClass = item.confirmed ? 'status-pill status-confirmed' : 'status-pill status-unconfirmed';
+        const location = [item.city, item.state].filter(Boolean).join(', ') || '—';
+        const skill = (item.primarySkill === 'Other' || item.primarySkill === 'other') && item.otherService ? item.otherService : (item.primarySkill || '—');
+        const portfolio = item.portfolioLink ? `<a href="${escapeHtml(item.portfolioLink)}" target="_blank" rel="noopener">Link</a>` : '—';
+
         rows.push('<tr>'+
+          '<td>'+ escapeHtml(item.fullName) +'</td>'+
           '<td>'+ escapeHtml(item.email) +'</td>'+
+          '<td>'+ escapeHtml(item.phoneNumber) +'</td>'+
+          '<td>'+ escapeHtml(skill) +'</td>'+
+          '<td>'+ escapeHtml(location) +'</td>'+
+          '<td>'+ escapeHtml(item.yearsOfExperience || '—') +'</td>'+
+          '<td>'+ portfolio +'</td>'+
           '<td><span class="'+statusClass+'">'+ (item.confirmed? 'Confirmed':'Unconfirmed') +'</span></td>'+
-          '<td class="mono">'+ formatDate(item.createdAt || item.created_at) +'</td>'+
-        //   '<td class="mono muted">'+ (item.id || '—') +'</td>'+
+          '<td class="mono">'+ formatDate(item.createdAt) +'</td>'+
         '</tr>');
       }
     }
@@ -66,7 +75,8 @@
   }
 
   function escapeHtml(str){
-    return str.replace(/[&<>"]+/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+    if(str == null) return '';
+    return String(str).replace(/[&<>"]+/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
   }
 
   async function loadStatsAndUsers({silent}={}){
@@ -82,13 +92,21 @@
       statUpdated.textContent = new Date().toLocaleTimeString(undefined,{hour12:false});
       cache = Array.isArray(stats.users) ? stats.users.map(u => ({
         id: u._id || u.id,
-        email: u.email,
+        email: u.email || '',
+        fullName: u.fullName || '',
+        phoneNumber: u.phoneNumber || '',
+        primarySkill: u.primarySkill || '',
+        otherService: u.otherService || '',
+        city: u.city || '',
+        state: u.state || '',
+        yearsOfExperience: u.yearsOfExperience || '',
+        portfolioLink: u.portfolioLink || '',
         confirmed: !!u.confirmed,
         createdAt: u.joinedAt || u.createdAt || u.created_at
       })) : [];
       renderTable();
     } catch(err){
-      if(!silent){ tbody.innerHTML = '<tr><td colspan="4" class="empty">Failed to load entries.</td></tr>'; }
+      if(!silent){ tbody.innerHTML = '<tr><td colspan="9" class="empty">Failed to load entries.</td></tr>'; }
       errorMsg.textContent = err.message || 'Failed to load data';
       errorMsg.hidden = false;
       statUpdated.textContent = 'Err';
