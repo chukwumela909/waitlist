@@ -8,6 +8,7 @@
 		}
 	],
 	"settings": {
-		"liveServer.settings.multiRootWorkspaceName": "waitlist"
+		"liveServer.settings.multiRootWorkspaceName": "waitlist",
+		"liveServer.settings.port": 5501
 	}
 }
